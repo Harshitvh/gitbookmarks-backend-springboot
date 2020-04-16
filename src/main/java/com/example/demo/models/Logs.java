@@ -13,4 +13,5 @@ public class Logs {
 	private String action;
 	private String repoId;
 	private String timestamp;
+	private String repoName;
 }

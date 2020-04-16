@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,7 +33,12 @@ public class GitHubService {
 	
 	public List<Repository>  getRepos(String user, String searchQuery)
 	{
+		if(StringUtils.isEmpty(searchQuery))
+		{
 		return gatewayService.getRepos(searchQuery).getBody().getItems();
+		}
+		else
+			return gatewayService.getRepos(searchQuery).getBody().getItems().stream().filter(x->x.getName().matches(searchQuery)).collect(Collectors.toList());
 	}
 
 	public String register(Auth auth1) throws Exception {
@@ -93,7 +99,7 @@ public class GitHubService {
 		  {
 			  BookMarks act = nmr.get();
 			  act.getRepos().add(repo);
-			  act.getLogs().add(Logs.builder().action("Added").repoId(repo.getId()).timestamp(LocalDateTime.now().toString()).build());
+			  act.getLogs().add(Logs.builder().action("Added").repoId(repo.getId()).repoName(repo.getName()).timestamp(LocalDateTime.now().toString()).build());
 			  bmr.save(act);
 		  }
 		  else
@@ -101,7 +107,7 @@ public class GitHubService {
 			  List<Repository> repos = new ArrayList<Repository>();
 			  repos.add(repo);
 			  List<Logs> logs = new ArrayList<Logs>();
-			  logs.add(Logs.builder().action("Added").repoId(repo.getId()).timestamp(LocalDateTime.now().toString()).build());
+			  logs.add(Logs.builder().action("Added").repoId(repo.getId()).repoName(repo.getName()).timestamp(LocalDateTime.now().toString()).build());
 			  BookMarks bookmks = BookMarks.builder().logs(logs).repos(repos).userId(auth.get(0).getId()).build();
 			  bmr.save(bookmks);
 		  }
@@ -120,9 +126,10 @@ public class GitHubService {
 		  {
 			  BookMarks act = nmr.get();
 			  List<Repository> repoList = act.getRepos().stream().filter(repo->!(repo.getId().equalsIgnoreCase(id))).collect(Collectors.toList());
+			  String repoName = act.getRepos().stream().filter(repo->(repo.getId().equalsIgnoreCase(id))).findFirst().get().getName();
 			  repoList.forEach(System.out::println);
 			  act.setRepos(repoList);
-			  act.getLogs().add(Logs.builder().action("Removed").repoId(id).timestamp(LocalDateTime.now().toString()).build());
+			  act.getLogs().add(Logs.builder().action("Removed").repoId(id).repoName(repoName).timestamp(LocalDateTime.now().toString()).build());
 			  bmr.save(act);
 		  }
 		  else

@@ -31,9 +31,8 @@ public class GateWayService {
 	public ResponseEntity<RepositoryAPIDto> getRepos(String searchQuery){
 		HttpEntity<Object> request = new HttpEntity<>(createHeader());
 		try {
-			Object abc =restTemplate.exchange(buildUrl(searchQuery), HttpMethod.GET,request, Object.class);
-			log.info(new Gson().toJson(abc));
-			return restTemplate.exchange(buildUrl(searchQuery), HttpMethod.GET,request, RepositoryAPIDto.class);
+			log.info(buildUrl());
+			return restTemplate.exchange(buildUrl(), HttpMethod.GET,request, RepositoryAPIDto.class);
 		}
 		catch (final HttpClientErrorException e) {
 			log.error("Unable to get Results",e);
@@ -48,14 +47,10 @@ public class GateWayService {
 		return header;
 	}
 	
-	public String buildUrl(String search){
-		if(!StringUtils.isEmpty(search))
-		{
-		 String searchQuery = search+"in"+" "+"name+language:php+language:javascript";
-		 return url+"?q="+searchQuery;
-		}
-
-		return url +"?q="+"language:php+language:javascript";		
+	public String buildUrl(){
+		return 	UriComponentsBuilder.fromHttpUrl(url)
+				.queryParam("q", "language:php+language:javascript")
+				.toUriString();
 	}
 
 
